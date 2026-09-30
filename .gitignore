@@ -3,5 +3,10 @@
 # o git. Ver README.md, secao "O que e publico e o que nao e".
 assets/originais/
 
+# Dado de campanha de verdade (fichas, tokens que voce subir, imagens de
+# mapa) - pessoal, cresce sem limite, mesma cautela de nao publicar sem
+# checar autoria. O git guarda o CODIGO do app, nao os dados de quem joga.
+campanhas/
+
 __pycache__/
 *.pyc

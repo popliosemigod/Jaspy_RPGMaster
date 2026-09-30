@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jaspy RPG Master — tokens</title>
+<style>
+:root{--fundo:#161314;--carta:#211c1e;--borda:#3a3134;--txt:#f0e6e8;--sub:#a4949a;--ok:#8a3e3e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--txt);padding:20px;max-width:960px;margin:0 auto;
+     font-family:'Segoe UI',system-ui,sans-serif}
+h1{font-size:22px;margin:4px 0}
+.sub{color:var(--sub);font-size:13px;margin-bottom:20px}
+select,input[type=text]{padding:8px 10px;border-radius:8px;border:1px solid var(--borda);
+     background:#0f0d0e;color:var(--txt);font:inherit}
+.carta{background:var(--carta);border:1px solid var(--borda);border-radius:12px;padding:16px;margin-bottom:16px}
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.token{background:var(--carta);border:1px solid var(--borda);border-radius:12px;padding:10px;text-align:center}
+.token img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:50%;border:2px solid var(--borda)}
+.token .nome{margin-top:8px;font-size:14px;font-weight:600}
+.token button{margin-top:6px;font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--borda);
+     background:#0f0d0e;color:var(--sub);cursor:pointer}
+.token button:hover{color:var(--txt)}
+.novo{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bt{padding:8px 16px;border-radius:8px;border:1px solid var(--ok);background:var(--ok);color:#fff;
+    font:inherit;font-weight:600;cursor:pointer}
+.bt:disabled{opacity:.5;cursor:default}
+#msg{font-size:13px;color:var(--sub);margin-top:8px}
+#msg.erro{color:#ff8a8a}
+</style>
+
+<h1>Jaspy RPG Master</h1>
+<div class="sub" id="campanhaSub">carregando campanha...</div>
+
+<div class="carta">
+  <div class="novo">
+    <input type="text" id="txtNome" placeholder="nome do personagem">
+    <input type="file" id="arqImagem" accept="image/*">
+    <button class="bt" id="btnCriar">Adicionar token</button>
+  </div>
+  <div id="msg"></div>
+</div>
+
+<div class="grade" id="grade"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+let CAMPANHA = null;
+
+function logar(texto, erro) {
+  const el = $('msg');
+  el.textContent = texto;
+  el.className = erro ? 'erro' : '';
+}
+
+async function carregaCampanha() {
+  const r = await fetch('/api/campanhas');
+  const campanhas = await r.json();
+  if (!campanhas.length) {
+    $('campanhaSub').textContent = 'nenhuma campanha ainda';
+    return;
+  }
+  CAMPANHA = campanhas[0].slug;
+  $('campanhaSub').textContent = `${campanhas[0].nome} (${campanhas[0].sistema || 'sistema não informado'})`;
+  await carregaTokens();
+}
+
+async function carregaTokens() {
+  const r = await fetch(`/api/campanhas/${CAMPANHA}/tokens`);
+  const tokens = await r.json();
+  const grade = $('grade');
+  grade.innerHTML = '';
+  for (const t of tokens) {
+    const div = document.createElement('div');
+    div.className = 'token';
+    const img = t.imagem ? `/campanhas/${CAMPANHA}/tokens/${t.imagem}` : '';
+    div.innerHTML = `
+      ${img ? `<img src="${img}" alt="${t.nome}">` : '<div style="aspect-ratio:1;background:#0f0d0e;border-radius:50%"></div>'}
+      <div class="nome">${t.nome}</div>
+      <button data-id="${t.id}">remover</button>
+    `;
+    div.querySelector('button').onclick = () => removeToken(t.id);
+    grade.appendChild(div);
+  }
+}
+
+function lerComoBase64(arquivo) {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(leitor.result.split(',')[1]);
+    leitor.onerror = reject;
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+async function criaToken() {
+  const nome = $('txtNome').value.trim();
+  if (!nome) { logar('dê um nome ao token', true); return; }
+  if (!CAMPANHA) { logar('nenhuma campanha carregada', true); return; }
+
+  const corpo = { nome };
+  const arquivo = $('arqImagem').files[0];
+  if (arquivo) {
+    corpo.imagem_base64 = await lerComoBase64(arquivo);
+    corpo.imagem_nome = arquivo.name;
+  }
+
+  $('btnCriar').disabled = true;
+  try {
+    const r = await fetch(`/api/campanhas/${CAMPANHA}/tokens`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo)
+    });
+    if (!r.ok) { const e = await r.json(); logar(`erro: ${e.erro}`, true); return; }
+    $('txtNome').value = '';
+    $('arqImagem').value = '';
+    logar(`"${nome}" adicionado`);
+    await carregaTokens();
+  } finally {
+    $('btnCriar').disabled = false;
+  }
+}
+
+async function removeToken(id) {
+  await fetch(`/api/campanhas/${CAMPANHA}/tokens/${id}`, { method: 'DELETE' });
+  await carregaTokens();
+}
+
+$('btnCriar').onclick = criaToken;
+carregaCampanha();
+</script>
+</html>

@@ -47,8 +47,9 @@ aqui: **este repositório é público no GitHub.**
 | Diretório | Vai para o git? | Por quê |
 | --- | --- | --- |
 | `assets/originais/` | **Não** | Espelho bruto do Drive: fotos de campanha, PDFs de regra **comerciais** (Ordem Paranormal, Arquivos Secretos, Sobrevivendo ao Horror — Jambô Editora), soundtrack de autoria não confirmada. Publicar isso num repo público seria redistribuir conteúdo comprado sem autorização — decisão tomada com o Henrique em 30/09/2026, não filtro meu sozinho. `python scripts/drive_puxar.py` traz tudo de volta a qualquer momento. |
+| `campanhas/` | **Não** | O dado de verdade do app — tokens que você criar, fichas, mapas. É dado pessoal de quem joga, não código; mesma cautela de proveniência de `assets/originais/`. |
 | `assets/catalogo.md` | **Sim** | Índice do que existe, sem o conteúdo em si — nomes, descrição, contagem. |
-| Código do app (quando existir) | **Sim** | É o que este repositório é feito para guardar. |
+| `servidor/`, `cliente/`, `scripts/` | **Sim** | É o que este repositório é feito para guardar. |
 
 **Se algum dia o app precisar de exemplos versionados** (ícone de token
 placeholder, mapa de demonstração), eles precisam ser autorais ou de
@@ -64,23 +65,31 @@ Jaspy_RPGMaster/
 ├── scripts/
 │   ├── drive_puxar.py      ← baixa assets/originais/ do Drive (fontes.json)
 │   └── fontes.json          ← qual pasta do Drive, adaptado de Jaspy/acervo
-└── assets/
-    ├── catalogo.md           ← o que existe, versionado
-    └── originais/            ← espelho bruto do Drive, fora do git
+├── servidor/
+│   └── servidor.py          ← API + arquivos estáticos, stdlib puro, sem TLS/login
+├── cliente/
+│   └── index.html            ← editor de token (o primeiro), vanilla JS
+├── assets/
+│   ├── catalogo.md           ← o que existe, versionado
+│   └── originais/            ← espelho bruto do Drive, fora do git
+└── campanhas/                ← dado de verdade do app, fora do git
+    └── idolo-de-pedra/       ← semeada com a campanha real (ver Estado)
 ```
 
-## Como trazer os assets de volta
+## Como rodar
 
 ```powershell
-python -m pip install --user requests   # so por seguranca; o script usa so stdlib
-python scripts/drive_puxar.py
+python scripts/drive_puxar.py      # traz assets/originais/ do Drive (so na 1a vez)
+python servidor/servidor.py         # abre em http://127.0.0.1:8642/
 ```
 
-Idempotente — rodar de novo só baixa o que falta ou mudou.
+Sem instalação nenhuma além do Python — tudo stdlib, de propósito (ver
+"Stack", abaixo).
 
 ## Estado — 30/09/2026
 
-**Só a fundação, ainda não existe aplicativo.** O que está pronto:
+**Fundação + primeira fatia vertical funcionando, testada com dado real
+— não é só esqueleto.**
 
 - `scripts/drive_puxar.py` — adaptado de `Jaspy/scripts/acervo/drive_puxar.py`,
   testado nesta sessão (47 arquivos, idempotente, path correto fora do
@@ -90,18 +99,37 @@ Idempotente — rodar de novo só baixa o que falta ou mudou.
 - `assets/catalogo.md` — o inventário da primeira campanha ("A Maldição
   do Ídolo de Pedra", sistema Ordem Paranormal): handouts, fichas, mapas
   em estágios, tokens, trilha sonora.
+- **Editor de tokens, ponta a ponta:** `servidor/servidor.py` (API REST
+  sobre HTTP puro, sem dependência externa) + `cliente/index.html` (grade
+  de tokens, adicionar por nome+imagem, remover). Semeado com os 5 tokens
+  reais da campanha (Alan, Edgar, Eloísa, Kênia, Victor) copiados de
+  `assets/originais/TOKENS/`. Testado de verdade, não só "parece certo":
+  - screenshot headless (Edge) confirmando os 5 retratos renderizando
+    certo na grade;
+  - criar + apagar via API confirmado ponta a ponta (script Python batendo
+    na API real, não teste unitário isolado);
+  - **dois bugs achados e corrigidos nesse processo:** apagar um token não
+    apagava o arquivo de imagem (órfão ficava em disco — corrigido,
+    `do_DELETE` agora remove os dois); e dois servidores concorrentes
+    ficaram escutando a mesma porta depois de um `kill` que não matou o
+    processo certo no Windows — descoberto pelo `netstat`, não pela
+    aparência (a API respondia normal, só que com o código velho).
 
-**O que falta, em ordem — não decidido ainda, precisa de conversa
-própria:**
+**Decisão já tomada, sem pergunta:** stack é Python stdlib (servidor) +
+HTML/JS sem build step (cliente) — mesmo padrão de baixa manutenção do
+`assistente/cliente-web` do laboratório Jaspy. Justificativa: "uso raro,
+raramente vou usá-lo" (Henrique, 30/09/2026) — um projeto que fica meses
+parado não deveria depender de `node_modules` nem de TLS/login que
+`ponte/servidor.py` precisa por falar com hardware físico; aqui é
+ferramenta de mestre, local, sem jogador remoto.
 
-1. Stack do aplicativo (ainda não escolhida). Recomendação a validar:
-   Python + HTML/JS sem build step, no mesmo padrão de baixa manutenção
-   do `assistente/cliente-web` do laboratório — justificável pelo "uso
-   raro": um projeto que fica meses parado não deveria depender de um
-   `node_modules` que apodrece nesse tempo.
-2. Modelo de dados: o que é uma "campanha", uma "ficha", um "token" — a
-   ficha vira dado estruturado (editável de verdade) ou continua imagem?
-   O catálogo já aponta para isso (5 fichas em imagem, prontas para virar
-   o primeiro teste real do editor).
-3. Primeiro editor a construir — meu palpite é o de token (é o dado mais
-   simples: nome, imagem, talvez tamanho), mas não decidi sozinho.
+**O que falta, em ordem:**
+
+1. Modelo de dado das fichas — as 5 fichas da campanha estão em imagem
+   (`assets/originais/FICHAS/`); ainda não viraram dado estruturado
+   editável. É o próximo editor natural, usando o mesmo padrão do de
+   token (servidor stdlib + página sem build).
+2. Editor de mapa — os 3 mapas em estágios ("O Porão", "+ Sala Secreta",
+   "+ Duto de Ventilação") já provam que precisa suportar variantes da
+   mesma planta, não só upload de imagem única.
+3. História/handouts e trilha sonora — ainda sem editor nem visualizador.
