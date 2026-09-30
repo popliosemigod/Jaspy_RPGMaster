@@ -1,0 +1,7 @@
+# Espelho bruto do Drive: fotos, PDFs comerciais, soundtracks. Reproduzivel
+# a qualquer momento com `python scripts/drive_puxar.py` - nunca vai para
+# o git. Ver README.md, secao "O que e publico e o que nao e".
+assets/originais/
+
+__pycache__/
+*.pyc

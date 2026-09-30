@@ -1,0 +1,16 @@
+{
+  "_comentario": [
+    "Pastas do Drive que alimentam assets/originais/.",
+    "Acrescentar uma fonte aqui e rodar `python scripts/drive_puxar.py`.",
+    "A pasta precisa estar compartilhada como 'qualquer pessoa com o link'.",
+    "Links no formato /u/1/folders/<id> funcionam: o script usa so o <id>."
+  ],
+  "fontes": [
+    {
+      "rotulo": "RPG (campanhas jogadas)",
+      "id": "1OJJgMKAjohJqARHqwVNO1BM_UL7JxpxX",
+      "destino": "assets/originais",
+      "observacao": "AVENTURAS, FICHAS, LIVROS, MAPAS, REFERENCIAS, SOUNDTRACKS, TOKENS."
+    }
+  ]
+}
