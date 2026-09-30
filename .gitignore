@@ -8,5 +8,9 @@ assets/originais/
 # checar autoria. O git guarda o CODIGO do app, nao os dados de quem joga.
 campanhas/
 
+# Pesquisa, ensaios, erros e becos sem saida - convencao "save devido" do
+# laboratorio Jaspy (docs/09-save-devido.md). O git guarda o decidido.
+CONTEXTO.md
+
 __pycache__/
 *.pyc
