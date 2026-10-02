@@ -47,7 +47,7 @@ aqui: **este repositório é público no GitHub.**
 | Diretório | Vai para o git? | Por quê |
 | --- | --- | --- |
 | `assets/originais/` | **Não** | Espelho bruto do Drive: fotos de campanha, PDFs de regra **comerciais** (Ordem Paranormal, Arquivos Secretos, Sobrevivendo ao Horror — Jambô Editora), soundtrack de autoria não confirmada. Publicar isso num repo público seria redistribuir conteúdo comprado sem autorização — decisão tomada com o Henrique em 30/09/2026, não filtro meu sozinho. `python scripts/drive_puxar.py` traz tudo de volta a qualquer momento. |
-| `campanhas/` | **Não** | O dado de verdade do app — tokens que você criar, fichas, mapas. É dado pessoal de quem joga, não código; mesma cautela de proveniência de `assets/originais/`. |
+| `campanhas/` | **Não** | O dado de verdade do app — tokens que você criar, fichas, mapas, e desde 02/10/2026 também o texto das missões, os handouts e o que se gera a partir deles. É dado pessoal de quem joga, não código; mesma cautela de proveniência de `assets/originais/`. |
 | `assets/catalogo.md` | **Sim** | Índice do que existe, sem o conteúdo em si — nomes, descrição, contagem. |
 | `servidor/`, `cliente/`, `scripts/` | **Sim** | É o que este repositório é feito para guardar. |
 
@@ -73,7 +73,12 @@ Jaspy_RPGMaster/
 │   ├── catalogo.md           ← o que existe, versionado
 │   └── originais/            ← espelho bruto do Drive, fora do git
 └── campanhas/                ← dado de verdade do app, fora do git
-    └── idolo-de-pedra/       ← semeada com a campanha real (ver Estado)
+    ├── idolo-de-pedra/       ← semeada com a campanha real (ver Fundação)
+    └── arquivos-walten/      ← a primeira escrita aqui (ver Estado)
+        ├── 01-missao.md … 03-handouts.md   ← a fonte: texto, numerado
+        ├── 04-… .json, 05-… .json          ← derivados, para diagramação
+        ├── tts/                             ← derivado: kit de Tabletop Simulator
+        └── _ferramentas/                    ← os geradores dos derivados
 ```
 
 ## Como rodar
@@ -86,7 +91,77 @@ python servidor/servidor.py         # abre em http://127.0.0.1:8642/
 Sem instalação nenhuma além do Python — tudo stdlib, de propósito (ver
 "Stack", abaixo).
 
-## Estado — 30/09/2026
+## Estado — 02/10/2026
+
+**Segunda campanha, e a primeira escrita aqui: "Os Arquivos Walten"**
+(Ordem Paranormal RPG, 1ª edição; uma missão completa). Com ela o
+repositório passou a fazer o que a seção "O que este projeto É" promete:
+preparar o material e entregá-lo às ferramentas que o consomem. Nenhuma
+linha de `servidor/` ou `cliente/` mudou; o que mudou foi o que se decidiu
+sobre a forma de uma campanha.
+
+**Decisões que passam a valer:**
+
+- **A fonte de uma campanha é texto.** Markdown numerado na pasta da
+  campanha: a missão, as ameaças e NPCs, os handouts. É o que o mestre lê
+  e corrige. Tudo o mais sai dele.
+- **O que vai para outra ferramenta é derivado, e não se edita à mão.**
+  Hoje são dois destinos: dados em JSON para diagramação, e um kit de
+  Tabletop Simulator (save + imagens). Cada derivado tem um gerador, e o
+  gerador confere o próprio resultado antes de gravar. Motivo: quando a
+  ficha do chefe mudou, trechos de dois arquivos escritos à mão ficaram
+  citando habilidades que já não existiam.
+- **Imagem tem nome fixo.** A arte do kit é funcional, desenhada por
+  código, para a mesa nascer jogável. Trocar por arte final é sobrescrever
+  o arquivo com o mesmo nome; o save não muda.
+- **Os geradores moram com a campanha, fora do git.** Eles carregam
+  conteúdo dela — texto de handout, nome de personagem, planta do
+  cenário —, e é isso que os põe do lado de `campanhas/` nesta política.
+  O preço é o mesmo do `CONTEXTO.md`: sem cópia pelo git, só a do OneDrive.
+
+**O que não está provado, dito com todas as letras:**
+
+- O kit de Tabletop Simulator **nunca foi aberto dentro do jogo** — ele
+  não está instalado na máquina onde o kit foi montado. Escala das peças,
+  estados do mapa e sacos só se confirmam abrindo.
+- As fichas da missão **nunca foram jogadas**.
+
+### Tabletop Simulator: o que se sabe do formato
+
+Vale para qualquer campanha, por isso fica aqui e não na pasta de uma:
+
+- O save é um JSON. Os formatos de `Custom_Tile`, `CardCustom`,
+  `HandTrigger` e das abas do caderno foram copiados de um save real da
+  versão 14.2.1. Os de `Bag` e `States` vieram do esquema da comunidade e
+  da lista oficial de nomes, sem exemplar real para comparar.
+- **Aba de caderno na cor preta só aparece para o assento de mestre** —
+  é onde cabe o texto da missão.
+- **Variante da mesma planta é estado do mesmo objeto.** O jogo já tem a
+  construção que o item "editor de mapa", abaixo, pedia.
+- **Imagem em caminho local só aparece no computador de quem hospeda.**
+  Para mesa online: *Upload → Cloud Manager → Upload All*, e salvar de novo.
+
+Fontes: [formato de save](https://kb.tabletopsimulator.com/custom-content/save-file-format/),
+[importação de assets](https://kb.tabletopsimulator.com/custom-content/asset-importing/),
+[Cloud Manager](https://kb.tabletopsimulator.com/custom-content/cloud-manager/),
+[esquema da comunidade](https://github.com/matanlurey/tts-save-format).
+
+### O que falta, em ordem
+
+1. **Abrir o kit no Tabletop Simulator** e corrigir o que o jogo mostrar.
+   Nada mais do kit deve crescer antes disso.
+2. **Decidir o destino dos geradores.** A parte que não depende da
+   campanha — ler o Markdown em blocos, montar os objetos do save — é
+   código e poderia subir para `scripts/`. Só vale a pena quando houver
+   uma segunda campanha escrita para provar o que é genérico.
+3. **Modelo de dado das fichas.** Agora há dois exemplos para modelar: as
+   5 fichas de jogador em imagem (`assets/originais/FICHAS/`) e uma ficha
+   de ameaça já estruturada em JSON, na campanha nova.
+4. **Editor de mapa** com variantes da mesma planta.
+5. **Handouts e trilha sonora** — os handouts da campanha nova existem
+   como texto e como imagem, ainda sem editor nem visualizador no app.
+
+## Fundação — 30/09/2026
 
 **Fundação + primeira fatia vertical funcionando, testada com dado real
 — não é só esqueleto.**
@@ -123,13 +198,9 @@ parado não deveria depender de `node_modules` nem de TLS/login que
 `ponte/servidor.py` precisa por falar com hardware físico; aqui é
 ferramenta de mestre, local, sem jogador remoto.
 
-**O que falta, em ordem:**
-
-1. Modelo de dado das fichas — as 5 fichas da campanha estão em imagem
-   (`assets/originais/FICHAS/`); ainda não viraram dado estruturado
-   editável. É o próximo editor natural, usando o mesmo padrão do de
-   token (servidor stdlib + página sem build).
-2. Editor de mapa — os 3 mapas em estágios ("O Porão", "+ Sala Secreta",
-   "+ Duto de Ventilação") já provam que precisa suportar variantes da
-   mesma planta, não só upload de imagem única.
-3. História/handouts e trilha sonora — ainda sem editor nem visualizador.
+**O que faltava nesta data** (a lista atual está em "Estado", acima):
+modelo de dado das fichas, que seria o próximo editor no mesmo padrão do
+de token; editor de mapa — os 3 mapas em estágios ("O Porão", "+ Sala
+Secreta", "+ Duto de Ventilação") já provavam que ele precisa suportar
+variantes da mesma planta, não só upload de imagem única; e
+história/handouts e trilha sonora, sem editor nem visualizador.
